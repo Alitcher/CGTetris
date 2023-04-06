@@ -12,6 +12,6 @@ Dynamic difficulty scaling
 ## Getting Started
 To run the game, you'll need a C++ compiler and the following libraries:
 
-OpenGL
-GLFW
-GLEW
+* OpenGL
+* GLFW
+* GLEW
