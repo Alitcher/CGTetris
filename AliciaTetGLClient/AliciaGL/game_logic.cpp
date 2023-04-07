@@ -8,10 +8,10 @@ using namespace std;
 
 int nScreenWidth = 80;			// Console Screen Size X (columns)
 int nScreenHeight = 30;			// Console Screen Size Y (rows)
-wstring tetromino[7];
+wstring tetromino[8];
 int nFieldWidth = 12;
 int nFieldHeight = 18;
-unsigned char* pField = nullptr;
+unsigned char* pField = nullptr; // 0 = empty space 1 
 
 int Rotate(int px, int py, int r)
 {
@@ -71,6 +71,49 @@ bool DoesPieceFit(int nTetromino, int nRotation, int nPosX, int nPosY)
 	return true;
 }
 
+void makeTetrisPiece() 
+{
+	tetromino[0].append(L"..X.");
+	tetromino[0].append(L"..X.");
+	tetromino[0].append(L"..X.");
+	tetromino[0].append(L"..X.");
+
+	tetromino[1].append(L"..X.");
+	tetromino[1].append(L".XX.");
+	tetromino[1].append(L"..X.");
+	tetromino[1].append(L"....");
+
+	tetromino[2].append(L"....");
+	tetromino[2].append(L".XX.");
+	tetromino[2].append(L".XX.");
+	tetromino[2].append(L"....");
+
+	tetromino[3].append(L"..X.");
+	tetromino[3].append(L".XX.");
+	tetromino[3].append(L".X..");
+	tetromino[3].append(L"....");
+
+	tetromino[4].append(L".X..");
+	tetromino[4].append(L".XX.");
+	tetromino[4].append(L"..X.");
+	tetromino[4].append(L"....");
+
+	tetromino[5].append(L".X..");
+	tetromino[5].append(L".X..");
+	tetromino[5].append(L".XX.");
+	tetromino[5].append(L"....");
+
+	tetromino[6].append(L"..X.");
+	tetromino[6].append(L"..X.");
+	tetromino[6].append(L".XX.");
+	tetromino[6].append(L"....");
+
+	tetromino[7].append(L"X...");
+	tetromino[7].append(L"X...");
+	tetromino[7].append(L"X...");
+	tetromino[7].append(L"XXX.");
+}
+
 void maintetris()
 {
 	// Create Screen Buffer
@@ -80,13 +123,7 @@ void maintetris()
 	SetConsoleActiveScreenBuffer(hConsole);
 	DWORD dwBytesWritten = 0;
 
-	tetromino[0].append(L"..X...X...X...X."); // Tetronimos 4x4
-	tetromino[1].append(L"..X..XX...X.....");
-	tetromino[2].append(L".....XX..XX.....");
-	tetromino[3].append(L"..X..XX..X......");
-	tetromino[4].append(L".X...XX...X.....");
-	tetromino[5].append(L".X...X...XX.....");
-	tetromino[6].append(L"..X...X..XX.....");
+	makeTetrisPiece();
 
 	pField = new unsigned char[nFieldWidth * nFieldHeight]; // Create play field buffer
 	for (int x = 0; x < nFieldWidth; x++) // Board Boundary
@@ -117,7 +154,7 @@ void maintetris()
 
 		// Input ========================
 		for (int k = 0; k < 4; k++)								// R   L   D Z
-			bKey[k] = (0x8000 & GetAsyncKeyState((unsigned char)("\x27\x25\x28Z"[k]))) != 0;
+			bKey[k] = (0x8000 & GetAsyncKeyState((unsigned char)("\x27\x25\x28\x26"[k]))) != 0;
 
 		// Game Logic ===================
 
