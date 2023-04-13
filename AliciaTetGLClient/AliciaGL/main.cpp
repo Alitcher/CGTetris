@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "Display.h"
+#include "Colors.h"
 
 using namespace std;
 
@@ -42,7 +43,7 @@ GLuint createShaderProgram(const GLchar* vertexShaderSource, const GLchar* fragm
 void createBuffers(GLuint& vao, GLuint& vbo, float* vertices, GLsizei verticesSize);
 GLuint vao, vbo;
 GLuint shaderProgram;
-glm::vec4 colorPink(1.0f, 0.545f, 0.718f, 1.0f);
+
 GLint colorLocation;
 
 float triangle_vertices[] = {
@@ -138,6 +139,5 @@ void drawTriangle(glm::vec4 color) {
 
 void testDrawTriangle() {
 
-    drawTriangle(colorPink);
-    // no delete buffers and shader program here?
+    drawTriangle(COLOR_ORANGE);
 }
