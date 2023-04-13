@@ -2,20 +2,22 @@
 #define SHADER_H
 
 #include <GL/glew.h>
-#include <string>
-#include <fstream>
-#include <sstream>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
+#include <GLFW/glfw3.h>
 
 class Shader {
 public:
-    GLuint ID;
-    Shader(const char* vertexShaderSource, const char* fragmentShaderSource); // Add this line
+    Shader(const GLchar* vertexShaderSource, const GLchar* fragmentShaderSource);
     ~Shader();
-    void bind();
+    void use();
+    void setUniform(const char* name, glm::vec4 value);
+    GLuint shaderProgram;
+    GLint colorLocation;
 
-private:
-    void checkCompileErrors(GLuint shader, const char* type);
+    GLuint createShader(GLenum shaderType, const GLchar* shaderSource);
+    GLuint createShaderProgram(const GLchar* vertexShaderSource, const GLchar* fragmentShaderSource);
 };
 
 

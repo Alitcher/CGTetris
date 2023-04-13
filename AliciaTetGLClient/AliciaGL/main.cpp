@@ -12,8 +12,8 @@ wstring shapes[8];
 wstring board;
 
 string PROJECT_NAME = "Alicia TetrisGL";
-const int SCREEN_WIDTH = 400;
-const int SCREEN_HEIGHT = 600;
+const int SCREEN_WIDTH = 800;
+const int SCREEN_HEIGHT = 1200;
 
 
 const char* fragmentShaderSource = R"(
@@ -37,63 +37,83 @@ const char* vertexShaderSource = R"glsl(
 )glsl";
 
 void testDrawTriangle();
+void deleteBuffers(GLuint& vao, GLuint& vbo);
+GLuint createShaderProgram(const GLchar* vertexShaderSource, const GLchar* fragmentShaderSource);
+void createBuffers(GLuint& vao, GLuint& vbo, float* vertices, GLsizei verticesSize);
+GLuint vao, vbo;
+GLuint shaderProgram;
+glm::vec4 colorPink(1.0f, 0.545f, 0.718f, 1.0f);
+GLint colorLocation;
 
-void CreateTetWindow4() 
+float triangle_vertices[] = {
+    -0.05f, 0.0f,
+     0.05f, 0.0f,
+     0.0f,  0.05f,
+};
+void CreateTetWindow4()
 {
-    float x = 8;
-    float y = 568.0;
-    float offset = (0 * 80);
-    Display display(SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200, PROJECT_NAME);
-    glViewport(0, 0, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+    Display display(SCREEN_WIDTH, SCREEN_HEIGHT, PROJECT_NAME);
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    //shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    bool shouldDrawTriangle = true;
+    shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
+
+    createBuffers(vao, vbo, triangle_vertices, sizeof(triangle_vertices));
+
+    colorLocation = glGetUniformLocation(shaderProgram, "uColor");
+
     while (!display.shouldClose()) {
         glClear(GL_COLOR_BUFFER_BIT);
-        testDrawTriangle();
 
+        if (shouldDrawTriangle) {
+            testDrawTriangle();
+        }
 
         display.swapBuffers();
         display.pollEvents();
     }
+    deleteBuffers(vao,vbo);
+    glDeleteProgram(shaderProgram);
 }
 
 int main() {
-    
+
     CreateTetWindow4();
     return 0;
 }
 
-void testDrawTriangle() {
-    float vertices[] = {
-        -0.5f, -0.5f,
-         0.5f, -0.5f,
-         0.0f,  0.5f,
-    };
-
-    GLuint vao, vbo;
+void createBuffers(GLuint& vao, GLuint& vbo, float* vertices, GLsizei verticesSize) {
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
 
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, verticesSize, vertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+}
 
-    // create and compile the shader program
-    GLuint shaderProgram;
-    shaderProgram = glCreateProgram();
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+void deleteBuffers(GLuint& vao, GLuint& vbo) {
+    glDisableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDeleteBuffers(1, &vbo);
+    glDeleteVertexArrays(1, &vao);
+}
 
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
+GLuint createShader(GLenum shaderType, const GLchar* shaderSource) {
+    GLuint shader = glCreateShader(shaderType);
+    glShaderSource(shader, 1, &shaderSource, NULL);
+    glCompileShader(shader);
+    return shader;
+}
 
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
+GLuint createShaderProgram(const GLchar* vertexShaderSource, const GLchar* fragmentShaderSource) {
+    GLuint shaderProgram = glCreateProgram();
+    GLuint vertexShader = createShader(GL_VERTEX_SHADER, vertexShaderSource);
+    GLuint fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
 
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
@@ -102,21 +122,22 @@ void testDrawTriangle() {
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    glUseProgram(shaderProgram);
-    GLint colorLocation = glGetUniformLocation(shaderProgram, "uColor");
-    glm::vec4 color(1.0f, 0.545f, 0.718f, 1.0f);
-    glUniform4fv(colorLocation, 1, glm::value_ptr(color));
-
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glUseProgram(0); // Unbind the shader program
-    glDisableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    glDeleteBuffers(1, &vbo);
-    glDeleteVertexArrays(1, &vao);
-    glDeleteProgram(shaderProgram);
+    return shaderProgram;
 }
 
+void drawTriangle(glm::vec4 color) {
+    glUseProgram(shaderProgram);
+    glUniform4fv(colorLocation, 1, glm::value_ptr(color));
 
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
 
+    glUseProgram(0); // Unbind the shader program
+    glBindVertexArray(0);
+}
+
+void testDrawTriangle() {
+
+    drawTriangle(colorPink);
+    // no delete buffers and shader program here?
+}
