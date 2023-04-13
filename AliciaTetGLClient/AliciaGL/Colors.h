@@ -1,6 +1,5 @@
 #ifndef COLORS_H
 #define COLORS_H
-
 #include <glm/glm.hpp>
 
 const glm::vec4 COLOR_PINK(1.0f, 0.545f, 0.718f, 1.0f); // #FF8BB7
