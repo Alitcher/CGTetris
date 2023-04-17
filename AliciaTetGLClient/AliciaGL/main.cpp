@@ -7,6 +7,7 @@
 #include "Colors.h"
 #include "Clocks.h"
 #include "Config.h"
+#include <vector>
 using namespace std;
 
 wstring shapes[8];
@@ -49,6 +50,24 @@ void drawBoard()
 	}
 }
 
+
+void drawTetriminoSet() {
+	float offsetX = -0.9f;
+	float offsetY = 0.7f;
+	float gap = 0.2f;
+	for (int i = 0; i < 1; i++) {
+		wstring shape = shapes[i];
+		for (int j = 0; j < 16; j++) {
+			if (shape[j] == L'X') {
+				int row = j / 4; // calculate row
+				int col = j % 4; // calculate column
+				glm::vec2 squareTranslation(offsetX + col * 0.10f + i * gap, offsetY - row * 0.10f); // set translation based on row and column
+				drawSquare(colors[i], squareTranslation);
+			}
+		}
+	}
+}
+
 int stepsCount;
 
 void CreateTetWindow4()
@@ -80,7 +99,8 @@ void CreateTetWindow4()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		if (shouldDraw) {
-			drawBoard();
+			//drawBoard();
+			drawTetriminoSet();
 			drawSquare(COLOR_ORANGE);
 		}
 
@@ -262,10 +282,5 @@ void setupTetrominos() {
 	shapes[6].append(L"..X.");
 	shapes[6].append(L".XX.");
 	shapes[6].append(L"....");
-
-	shapes[7].append(L"X...");
-	shapes[7].append(L"X...");
-	shapes[7].append(L"X...");
-	shapes[7].append(L"XXX.");
 
 }
