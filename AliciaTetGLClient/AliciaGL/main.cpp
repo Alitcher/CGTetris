@@ -12,8 +12,14 @@ using namespace std;
 wstring shapes[8];
 wstring board;
 
+void setupTetrominos();
+void setBoard();
+
 void testDrawTriangle();
 void deleteBuffers(GLuint& vao, GLuint& vbo);
+void drawSquare(glm::vec4 color);
+void drawSquare(glm::vec4 color, glm::vec2 squareTranslation);
+
 GLuint createShaderProgram(const GLchar* vertexShaderSource, const GLchar* fragmentShaderSource);
 void createBuffers(GLuint& vao, GLuint& vbo, float* vertices, GLsizei verticesSize);
 GLuint vao, vbo;
@@ -24,64 +30,80 @@ glm::vec2 translation(0.05f, 0.0f);
 /*VAO is an object that represents the vertex fetch stage of the
 OpenGL pipeline and is used to supply input to the vertex shader.*/
 
-float triangle_vertices[] = {
-	-0.05f, 0.0f,
-	 0.05f, 0.0f,
-	 0.0f,  0.05f,
-};
 
-void SetUpShader() 
+void SetUpShader()
 {
 	shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
 	colorLocation = glGetUniformLocation(shaderProgram, "uColor");
 	translationLocation = glGetUniformLocation(shaderProgram, "uTranslation");
 }
+void drawBoard()
+{
+	for (int i = 0; i < board.size(); ++i) {
+		if (board.at(i) == L'X') {
+			int row = i / 12; // calculate row
+			int col = i % 12; // calculate column
+			glm::vec2 squareTranslation(-0.9f + col * 0.10f, 0.9f - row * 0.10f); // set translation based on row and column
+			drawSquare(COLOR_NAVY, squareTranslation);
+		}
+	}
+}
+
+int stepsCount;
 
 void CreateTetWindow4()
 {
 	Clock Time;
 	Display display(SCREEN_WIDTH, SCREEN_HEIGHT, PROJECT_NAME);
-	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	glViewport(0, 0, SCREEN_WIDTH, SCREEN_WIDTH);
 
 
 	createBuffers(vao, vbo, triangle_vertices, sizeof(triangle_vertices));
-	
+	createBuffers(vao, vbo, square_vertices, sizeof(square_vertices));
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	SetUpShader();
+	translation.y = 1.5f;
+	translation.x = -0.8f;
 
-	translation.y = 1.0f;
+
 	glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
 
-	bool shouldDrawTriangle = true;
+	bool shouldDraw = true;
 	while (!display.shouldClose()) {
 
-		Time.currentFrameTime = glfwGetTime();
+		Time.currentFrameTime = static_cast<float>(glfwGetTime());
 		Time.deltaTime = Time.currentFrameTime - Time.lastFrameTime;
 		Time.lastFrameTime = Time.currentFrameTime;
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		if (shouldDrawTriangle) {
-			testDrawTriangle();
+		if (shouldDraw) {
+			drawBoard();
+			drawSquare(COLOR_ORANGE);
 		}
 
 		display.swapBuffers();
 		display.pollEvents();
 
 		// update the translation vector every interval seconds
-		if (Time.currentFrameTime >= Time.INTERVAL && translation.y > -1.0f) {
-			translation.y -= 0.05f;
+		if (Time.currentFrameTime >= Time.INTERVAL && translation.y > -0.8f) {
+			translation.y -= 0.1f;
+			stepsCount++;
 			glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
 			Time.INTERVAL += 1.0f;
 		}
 	}
+	cout << stepsCount << " steps" << endl;
 	deleteBuffers(vao, vbo);
 	glDeleteProgram(shaderProgram);
 }
 
 int main() {
 
+	setupTetrominos();
+	setBoard();
 	CreateTetWindow4();
 	return 0;
 }
@@ -136,7 +158,7 @@ GLuint createShaderProgram(const GLchar* vertexShaderSource, const GLchar* fragm
 void drawTriangle(glm::vec4 color) {
 
 	glUseProgram(shaderProgram);
-	glUniform4fv(colorLocation, 1, glm::value_ptr(COLOR_ORANGE));
+	glUniform4fv(colorLocation, 1, glm::value_ptr(color));
 	glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
 
 	glBindVertexArray(vao);
@@ -148,7 +170,102 @@ void drawTriangle(glm::vec4 color) {
 
 }
 
+void drawSquare(glm::vec4 color) {
+	glUseProgram(shaderProgram);
+	glUniform4fv(colorLocation, 1, glm::value_ptr(color));
+	glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
+
+	glBindVertexArray(vao);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glUseProgram(0);
+	glBindVertexArray(0);
+}
+
+void drawSquare(glm::vec4 color, glm::vec2 squareTranslation) {
+	glUseProgram(shaderProgram);
+	glUniform4fv(colorLocation, 1, glm::value_ptr(color));
+	glUniform2fv(translationLocation, 1, glm::value_ptr(squareTranslation));
+
+	glBindVertexArray(vao);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glUseProgram(0);
+	glBindVertexArray(0);
+}
+
+
 void testDrawTriangle() {
 
 	drawTriangle(COLOR_ORANGE);
+}
+
+void setBoard()
+{
+
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"XXXXXXXXXXXX");
+
+	cout << board.size() << endl;
+
+}
+
+void setupTetrominos() {
+	shapes[0].append(L"..X.");
+	shapes[0].append(L"..X.");
+	shapes[0].append(L"..X.");
+	shapes[0].append(L"..X.");
+
+	shapes[1].append(L"..X.");
+	shapes[1].append(L".XX.");
+	shapes[1].append(L"..X.");
+	shapes[1].append(L"....");
+
+	shapes[2].append(L"....");
+	shapes[2].append(L".XX.");
+	shapes[2].append(L".XX.");
+	shapes[2].append(L"....");
+
+	shapes[3].append(L"..X.");
+	shapes[3].append(L".XX.");
+	shapes[3].append(L".X..");
+	shapes[3].append(L"....");
+
+	shapes[4].append(L".X..");
+	shapes[4].append(L".XX.");
+	shapes[4].append(L"..X.");
+	shapes[4].append(L"....");
+
+	shapes[5].append(L".X..");
+	shapes[5].append(L".X..");
+	shapes[5].append(L".XX.");
+	shapes[5].append(L"....");
+
+	shapes[6].append(L"..X.");
+	shapes[6].append(L"..X.");
+	shapes[6].append(L".XX.");
+	shapes[6].append(L"....");
+
+	shapes[7].append(L"X...");
+	shapes[7].append(L"X...");
+	shapes[7].append(L"X...");
+	shapes[7].append(L"XXX.");
+
 }
