@@ -93,14 +93,13 @@ vector<glm::vec2> generateTetriminoT(int shapeIndex) {
 //	}
 //}
 
-
-
 int stepsCount;
-
-glm::vec2 translation(0.05f, 0.0f);
+vector<glm::vec2> squareTranslations;
 
 void CreateTetWindow4()
 {
+	glm::vec2 translation(0.05f, 0.0f);
+
 	Clock Time;
 	Display display(SCREEN_WIDTH, SCREEN_HEIGHT, PROJECT_NAME);
 	GLFWwindow* window = display.getWindow();
@@ -120,6 +119,7 @@ void CreateTetWindow4()
 	translation.x = -0.8f;
 	bool isGameover = false;
 	int randomIndex = rand() % shapesLength;
+	bool isDownKeyPressed = false;
 
 	while (!display.shouldClose()) {
 
@@ -130,30 +130,40 @@ void CreateTetWindow4()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// INPUT  =======================
-		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-			// Move tetrimino right
+		if (!isDownKeyPressed)
+		{
+			if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS && translation.x < 0.1f) {
+				translation.x += 0.1f;
+				isDownKeyPressed = true;
+			}
+			else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS && translation.x > -0.8f) {
+				translation.x -= 0.1f;
+				isDownKeyPressed = true;
+			}
+
+			else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+				// Rotate tetrimino
+				isDownKeyPressed = true;
+			}
 		}
-		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-			// Move tetrimino left
+		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && translation.y > -0.8f) {
+			translation.y -= 0.1f;
 		}
-		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-			// Move tetrimino down faster
+
+		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_RELEASE //glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_RELEASE && 
+			&& glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE) {
+			isDownKeyPressed = false;
 		}
-		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-			// Rotate tetrimino
-		}
+
+
 		// LOGOC - Collision detection, falling, score, rotate
 
-				// Handle player movement
-		//nCurrentX += (bKey[0] && DoesPieceFit(nCurrentPiece, nCurrentRotation, nCurrentX + 1, nCurrentY)) ? 1 : 0;
-		//nCurrentX -= (bKey[1] && DoesPieceFit(nCurrentPiece, nCurrentRotation, nCurrentX - 1, nCurrentY)) ? 1 : 0;
-		//nCurrentY += (bKey[2] && DoesPieceFit(nCurrentPiece, nCurrentRotation, nCurrentX, nCurrentY + 1)) ? 1 : 0;
-		if (!isGameover) 
+		if (!isGameover)
 		{
 			// RENDER
 			drawBoard();
 			generateRandomTetrimino(randomIndex);
-			drawSquare(COLOR_ORANGE);
+			drawSquare(COLOR_ORANGE, translation);
 		}
 
 
@@ -256,18 +266,6 @@ void drawTriangle(glm::vec4 color, glm::vec2 triTranslation) {
 	glBindVertexArray(0);
 
 
-}
-
-void drawSquare(glm::vec4 color) {
-	glUseProgram(shaderProgram);
-	glUniform4fv(colorLocation, 1, glm::value_ptr(color));
-	glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
-
-	glBindVertexArray(vao);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	glUseProgram(0);
-	glBindVertexArray(0);
 }
 
 void drawSquare(glm::vec4 color, glm::vec2 squareTranslation) {
