@@ -7,7 +7,6 @@
 #include "Colors.h"
 #include "Clocks.h"
 #include "Config.h"
-
 using namespace std;
 
 wstring shapes[8];
@@ -22,13 +21,22 @@ GLuint shaderProgram;
 GLint translationLocation;
 GLint colorLocation;
 glm::vec2 translation(0.05f, 0.0f);
-
+/*VAO is an object that represents the vertex fetch stage of the
+OpenGL pipeline and is used to supply input to the vertex shader.*/
 
 float triangle_vertices[] = {
 	-0.05f, 0.0f,
 	 0.05f, 0.0f,
 	 0.0f,  0.05f,
 };
+
+void SetUpShader() 
+{
+	shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
+	colorLocation = glGetUniformLocation(shaderProgram, "uColor");
+	translationLocation = glGetUniformLocation(shaderProgram, "uTranslation");
+}
+
 void CreateTetWindow4()
 {
 	Clock Time;
@@ -41,12 +49,9 @@ void CreateTetWindow4()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
-	colorLocation = glGetUniformLocation(shaderProgram, "uColor");
-	translationLocation = glGetUniformLocation(shaderProgram, "uTranslation");
+	SetUpShader();
 
 	translation.y = 1.0f;
-	translation.x = 1.0f;
 	glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
 
 	bool shouldDrawTriangle = true;
@@ -65,7 +70,7 @@ void CreateTetWindow4()
 		display.pollEvents();
 
 		// update the translation vector every interval seconds
-		if (Time.currentFrameTime >= Time.INTERVAL) {
+		if (Time.currentFrameTime >= Time.INTERVAL && translation.y > -1.0f) {
 			translation.y -= 0.05f;
 			glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
 			Time.INTERVAL += 1.0f;
@@ -100,21 +105,28 @@ void deleteBuffers(GLuint& vao, GLuint& vbo) {
 }
 
 GLuint createShader(GLenum shaderType, const GLchar* shaderSource) {
-	GLuint shader = glCreateShader(shaderType);
-	glShaderSource(shader, 1, &shaderSource, NULL);
-	glCompileShader(shader);
+	GLuint shader = glCreateShader(shaderType); //creates an empty shader object, ready to accept source code and be compiled.
+	glShaderSource(shader, 1, &shaderSource, NULL); //hands shader source code to the shader object so that it can keep a copy of it.
+	glCompileShader(shader); //compiles whatever source code is contained in the shader object.
 	return shader;
 }
 
 GLuint createShaderProgram(const GLchar* vertexShaderSource, const GLchar* fragmentShaderSource) {
-	GLuint shaderProgram = glCreateProgram();
+	// Create program, attach shaders to it, and link it
+	GLuint shaderProgram = glCreateProgram(); //creates a program object to which you can attach shader objects.
 	GLuint vertexShader = createShader(GL_VERTEX_SHADER, vertexShaderSource);
 	GLuint fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
 
+	//attaches a shader object to a program object.
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
+
+	//links all of the shader objects attached to a program object together.
 	glLinkProgram(shaderProgram);
 
+	/*deletes a shader object.Once a shader has been linked into
+	a program object, the program contains the binary codeand the shader is no longer
+		needed.*/
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 

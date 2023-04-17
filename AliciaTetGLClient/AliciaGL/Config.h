@@ -8,7 +8,7 @@ const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 1200;
 
 const char* fragmentShaderSource = R"(
-#version 330 core
+#version 450 core
 out vec4 FragColor;
 uniform vec4 uColor;
 
@@ -19,7 +19,7 @@ void main() {
 )";
 
 const char* vertexShaderSource = R"glsl(
-    #version 330 core
+    #version 450 core
     layout (location = 0) in vec2 aPos;
     uniform vec2 uTranslation;
 
