@@ -45,3 +45,7 @@ void Display::swapBuffers() {
 void Display::pollEvents() {
     glfwPollEvents();
 }
+
+GLFWwindow* Display::getWindow() const {
+    return window_;
+}

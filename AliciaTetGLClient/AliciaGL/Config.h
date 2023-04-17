@@ -6,7 +6,8 @@
 std::string PROJECT_NAME = "Alicia TetrisGL";
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 1200;
-const float gap = 2;
+
+
 const char* fragmentShaderSource = R"(
 #version 450 core
 out vec4 FragColor;
@@ -43,6 +44,5 @@ float triangle_vertices[] = {
 	 0.05f, 0.0f,
 	 0.0f,  0.05f,
 };
-
 
 #endif 

@@ -7,19 +7,20 @@
 #include "Colors.h"
 #include "Clocks.h"
 #include "Config.h"
+#include "GameConfig.h"
 #include <vector>
 using namespace std;
 
-wstring shapes[8];
+wstring shapes[7];
 wstring board;
 
 void setupTetrominos();
 void setBoard();
 
-void testDrawTriangle();
 void deleteBuffers(GLuint& vao, GLuint& vbo);
 void drawSquare(glm::vec4 color);
 void drawSquare(glm::vec4 color, glm::vec2 squareTranslation);
+void SetUpShader();
 
 GLuint createShaderProgram(const GLchar* vertexShaderSource, const GLchar* fragmentShaderSource);
 void createBuffers(GLuint& vao, GLuint& vbo, float* vertices, GLsizei verticesSize);
@@ -27,17 +28,11 @@ GLuint vao, vbo;
 GLuint shaderProgram;
 GLint translationLocation;
 GLint colorLocation;
-glm::vec2 translation(0.05f, 0.0f);
 /*VAO is an object that represents the vertex fetch stage of the
 OpenGL pipeline and is used to supply input to the vertex shader.*/
 
 
-void SetUpShader()
-{
-	shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
-	colorLocation = glGetUniformLocation(shaderProgram, "uColor");
-	translationLocation = glGetUniformLocation(shaderProgram, "uTranslation");
-}
+
 void drawBoard()
 {
 	for (int i = 0; i < board.size(); ++i) {
@@ -50,33 +45,68 @@ void drawBoard()
 	}
 }
 
-
-void drawTetriminoSet() {
+void generateRandomTetrimino(int randomIndex) {
+	wstring shape = shapes[randomIndex];
 	float offsetX = -0.9f;
-	float offsetY = 0.7f;
-	float gap = 0.2f;
-	for (int i = 0; i < 1; i++) {
-		wstring shape = shapes[i];
-		for (int j = 0; j < 16; j++) {
-			if (shape[j] == L'X') {
-				int row = j / 4; // calculate row
-				int col = j % 4; // calculate column
-				glm::vec2 squareTranslation(offsetX + col * 0.10f + i * gap, offsetY - row * 0.10f); // set translation based on row and column
-				drawSquare(colors[i], squareTranslation);
-			}
+	//float offsetY = 1.2f;
+	for (int j = 0; j < 16; j++) {
+		if (shape[j] == L'X') {
+			int row = j / 4; // calculate row
+			int col = j % 4; // calculate column
+			glm::vec2 squareTranslation(offsetX + col * 0.10f + randomIndex * gap, TopPosY - row * 0.10f); // set translation based on row and column
+			drawSquare(colors[randomIndex], squareTranslation);
 		}
 	}
 }
 
+vector<glm::vec2> generateTetriminoT(int shapeIndex) {
+	vector<glm::vec2> squareTranslations;
+	float offsetX = -0.4f;
+	float offsetY = 1.0f;
+	float gap = 0.1f;
+
+	if (shapeIndex == 0) {
+		// T-shaped tetrimino
+		squareTranslations.push_back(glm::vec2(offsetX, offsetY));
+		squareTranslations.push_back(glm::vec2(offsetX - gap, offsetY - gap));
+		squareTranslations.push_back(glm::vec2(offsetX, offsetY - gap));
+		squareTranslations.push_back(glm::vec2(offsetX + gap, offsetY - gap));
+	}
+
+	return squareTranslations;
+}
+//
+//void drawTetriminoSet() {
+//	float offsetX = -0.9f;
+//	float offsetY = 0.7f;
+//	float gap = 0.2f;
+//	for (int i = 0; i < 1; i++) {
+//		wstring shape = shapes[i];
+//		for (int j = 0; j < 16; j++) {
+//			if (shape[j] == L'X') {
+//				int row = j / 4; // calculate row
+//				int col = j % 4; // calculate column
+//				glm::vec2 squareTranslation(offsetX + col * 0.10f + i * gap, offsetY - row * 0.10f); // set translation based on row and column
+//				drawSquare(colors[i], squareTranslation);
+//			}
+//		}
+//	}
+//}
+
+
+
 int stepsCount;
+
+glm::vec2 translation(0.05f, 0.0f);
 
 void CreateTetWindow4()
 {
 	Clock Time;
 	Display display(SCREEN_WIDTH, SCREEN_HEIGHT, PROJECT_NAME);
+	GLFWwindow* window = display.getWindow();
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_WIDTH);
 
-
+	srand(time(NULL));
 	createBuffers(vao, vbo, triangle_vertices, sizeof(triangle_vertices));
 	createBuffers(vao, vbo, square_vertices, sizeof(square_vertices));
 
@@ -84,25 +114,48 @@ void CreateTetWindow4()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	SetUpShader();
-	translation.y = 1.5f;
-	translation.x = -0.8f;
-
-
 	glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
 
-	bool shouldDraw = true;
+	translation.y = 1.0f;
+	translation.x = -0.8f;
+	bool isGameover = false;
+	int randomIndex = rand() % shapesLength;
+
 	while (!display.shouldClose()) {
 
+		// Game Timing =======================
 		Time.currentFrameTime = static_cast<float>(glfwGetTime());
 		Time.deltaTime = Time.currentFrameTime - Time.lastFrameTime;
 		Time.lastFrameTime = Time.currentFrameTime;
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		if (shouldDraw) {
-			//drawBoard();
-			drawTetriminoSet();
+		// INPUT  =======================
+		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+			// Move tetrimino right
+		}
+		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+			// Move tetrimino left
+		}
+		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+			// Move tetrimino down faster
+		}
+		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+			// Rotate tetrimino
+		}
+		// LOGOC - Collision detection, falling, score, rotate
+
+				// Handle player movement
+		//nCurrentX += (bKey[0] && DoesPieceFit(nCurrentPiece, nCurrentRotation, nCurrentX + 1, nCurrentY)) ? 1 : 0;
+		//nCurrentX -= (bKey[1] && DoesPieceFit(nCurrentPiece, nCurrentRotation, nCurrentX - 1, nCurrentY)) ? 1 : 0;
+		//nCurrentY += (bKey[2] && DoesPieceFit(nCurrentPiece, nCurrentRotation, nCurrentX, nCurrentY + 1)) ? 1 : 0;
+		if (!isGameover) 
+		{
+			// RENDER
+			drawBoard();
+			generateRandomTetrimino(randomIndex);
 			drawSquare(COLOR_ORANGE);
 		}
+
 
 		display.swapBuffers();
 		display.pollEvents();
@@ -113,6 +166,10 @@ void CreateTetWindow4()
 			stepsCount++;
 			glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
 			Time.INTERVAL += 1.0f;
+		}
+		else
+		{
+			generateRandomTetrimino(randomIndex);
 		}
 	}
 	cout << stepsCount << " steps" << endl;
@@ -125,8 +182,12 @@ int main() {
 	setupTetrominos();
 	setBoard();
 	CreateTetWindow4();
+
 	return 0;
 }
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
 
 void createBuffers(GLuint& vao, GLuint& vbo, float* vertices, GLsizei verticesSize) {
 	glGenVertexArrays(1, &vao);
@@ -144,6 +205,13 @@ void deleteBuffers(GLuint& vao, GLuint& vbo) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDeleteBuffers(1, &vbo);
 	glDeleteVertexArrays(1, &vao);
+}
+
+void SetUpShader()
+{
+	shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
+	colorLocation = glGetUniformLocation(shaderProgram, "uColor");
+	translationLocation = glGetUniformLocation(shaderProgram, "uTranslation");
 }
 
 GLuint createShader(GLenum shaderType, const GLchar* shaderSource) {
@@ -175,11 +243,11 @@ GLuint createShaderProgram(const GLchar* vertexShaderSource, const GLchar* fragm
 	return shaderProgram;
 }
 
-void drawTriangle(glm::vec4 color) {
+void drawTriangle(glm::vec4 color, glm::vec2 triTranslation) {
 
 	glUseProgram(shaderProgram);
 	glUniform4fv(colorLocation, 1, glm::value_ptr(color));
-	glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
+	glUniform2fv(translationLocation, 1, glm::value_ptr(triTranslation));
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -214,11 +282,6 @@ void drawSquare(glm::vec4 color, glm::vec2 squareTranslation) {
 	glBindVertexArray(0);
 }
 
-
-void testDrawTriangle() {
-
-	drawTriangle(COLOR_ORANGE);
-}
 
 void setBoard()
 {

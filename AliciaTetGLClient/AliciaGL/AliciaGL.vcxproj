@@ -157,6 +157,7 @@
     <ClInclude Include="Colors.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Display.h" />
+    <ClInclude Include="GameConfig.h" />
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
