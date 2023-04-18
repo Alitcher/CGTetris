@@ -6,7 +6,7 @@
 #include "Display.h"
 #include "Colors.h"
 #include "Clocks.h"
-#include "Config.h"
+#include "RenderConfig.h"
 #include "GameConfig.h"
 #include <vector>
 using namespace std;
@@ -22,12 +22,16 @@ void drawSquare(glm::vec4 color);
 void drawSquare(glm::vec4 color, glm::vec2 squareTranslation);
 void SetUpShader();
 
+glm::mat4 projectionMatrix;
 GLuint createShaderProgram(const GLchar* vertexShaderSource, const GLchar* fragmentShaderSource);
 void createBuffers(GLuint& vao, GLuint& vbo, float* vertices, GLsizei verticesSize);
 GLuint vao, vbo;
 GLuint shaderProgram;
 GLint translationLocation;
 GLint colorLocation;
+GLint projectionLocation;
+
+
 /*VAO is an object that represents the vertex fetch stage of the
 OpenGL pipeline and is used to supply input to the vertex shader.*/
 
@@ -39,42 +43,28 @@ void drawBoard()
 		if (board.at(i) == L'X') {
 			int row = i / 12; // calculate row
 			int col = i % 12; // calculate column
-			glm::vec2 squareTranslation(-0.9f + col * 0.10f, 0.9f - row * 0.10f); // set translation based on row and column
+			glm::vec2 squareTranslation(LeftPos + col * 0.10f, 0.9f - row * 0.10f); // set translation based on row and column
 			drawSquare(COLOR_NAVY, squareTranslation);
 		}
 	}
 }
+vector<glm::vec2> CurrentTetriminoTranslations;
 
 void generateRandomTetrimino(int randomIndex) {
 	wstring shape = shapes[randomIndex];
-	float offsetX = -0.9f;
+	float offsetX = LeftPos;
 	//float offsetY = 1.2f;
 	for (int j = 0; j < 16; j++) {
 		if (shape[j] == L'X') {
 			int row = j / 4; // calculate row
 			int col = j % 4; // calculate column
 			glm::vec2 squareTranslation(offsetX + col * 0.10f + randomIndex * gap, TopPosY - row * 0.10f); // set translation based on row and column
+			CurrentTetriminoTranslations.push_back(squareTranslation);
 			drawSquare(colors[randomIndex], squareTranslation);
 		}
 	}
 }
 
-vector<glm::vec2> generateTetriminoT(int shapeIndex) {
-	vector<glm::vec2> squareTranslations;
-	float offsetX = -0.4f;
-	float offsetY = 1.0f;
-	float gap = 0.1f;
-
-	if (shapeIndex == 0) {
-		// T-shaped tetrimino
-		squareTranslations.push_back(glm::vec2(offsetX, offsetY));
-		squareTranslations.push_back(glm::vec2(offsetX - gap, offsetY - gap));
-		squareTranslations.push_back(glm::vec2(offsetX, offsetY - gap));
-		squareTranslations.push_back(glm::vec2(offsetX + gap, offsetY - gap));
-	}
-
-	return squareTranslations;
-}
 //
 //void drawTetriminoSet() {
 //	float offsetX = -0.9f;
@@ -94,7 +84,6 @@ vector<glm::vec2> generateTetriminoT(int shapeIndex) {
 //}
 
 int stepsCount;
-vector<glm::vec2> squareTranslations;
 
 void CreateTetWindow4()
 {
@@ -103,7 +92,12 @@ void CreateTetWindow4()
 	Clock Time;
 	Display display(SCREEN_WIDTH, SCREEN_HEIGHT, PROJECT_NAME);
 	GLFWwindow* window = display.getWindow();
-	glViewport(0, 0, SCREEN_WIDTH, SCREEN_WIDTH);
+	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	float aspectRatio = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
+	projectionMatrix = glm::ortho(-1.0f * aspectRatio, 1.0f * aspectRatio, -1.0f, 1.0f);
+	SetUpShader();
+
 
 	srand(time(NULL));
 	createBuffers(vao, vbo, triangle_vertices, sizeof(triangle_vertices));
@@ -111,12 +105,12 @@ void CreateTetWindow4()
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
-	SetUpShader();
 	glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
 
 	translation.y = 1.0f;
-	translation.x = -0.8f;
+	translation.x = LeftPos + 0.1f;
 	bool isGameover = false;
 	int randomIndex = rand() % shapesLength;
 	bool isDownKeyPressed = false;
@@ -173,6 +167,13 @@ void CreateTetWindow4()
 		// update the translation vector every interval seconds
 		if (Time.currentFrameTime >= Time.INTERVAL && translation.y > -0.8f) {
 			translation.y -= 0.1f;
+
+			//for (int i = 0; i < CurrentTetriminoTranslations.size(); i++) {
+			//	glm::vec2& squareTranslation = CurrentTetriminoTranslations[i];
+			//	squareTranslation.y -= 0.1f;
+			//	glUniform2fv(translationLocation, 1, glm::value_ptr(squareTranslation));
+			//}
+
 			stepsCount++;
 			glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
 			Time.INTERVAL += 1.0f;
@@ -222,6 +223,8 @@ void SetUpShader()
 	shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
 	colorLocation = glGetUniformLocation(shaderProgram, "uColor");
 	translationLocation = glGetUniformLocation(shaderProgram, "uTranslation");
+	projectionLocation = glGetUniformLocation(shaderProgram, "projectionMatrix");
+
 }
 
 GLuint createShader(GLenum shaderType, const GLchar* shaderSource) {
@@ -272,6 +275,7 @@ void drawSquare(glm::vec4 color, glm::vec2 squareTranslation) {
 	glUseProgram(shaderProgram);
 	glUniform4fv(colorLocation, 1, glm::value_ptr(color));
 	glUniform2fv(translationLocation, 1, glm::value_ptr(squareTranslation));
+	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -279,7 +283,6 @@ void drawSquare(glm::vec4 color, glm::vec2 squareTranslation) {
 	glUseProgram(0);
 	glBindVertexArray(0);
 }
-
 
 void setBoard()
 {
@@ -303,9 +306,7 @@ void setBoard()
 	board.append(L"X..........X");
 	board.append(L"X..........X");
 	board.append(L"XXXXXXXXXXXX");
-
 	cout << board.size() << endl;
-
 }
 
 void setupTetrominos() {

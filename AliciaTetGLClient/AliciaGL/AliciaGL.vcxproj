@@ -155,7 +155,7 @@
   <ItemGroup>
     <ClInclude Include="Clocks.h" />
     <ClInclude Include="Colors.h" />
-    <ClInclude Include="Config.h" />
+    <ClInclude Include="RenderConfig.h" />
     <ClInclude Include="Display.h" />
     <ClInclude Include="GameConfig.h" />
     <ClInclude Include="Shader.h" />

@@ -11,6 +11,7 @@ int nScreenHeight = 30;			// Console Screen Size Y (rows)
 wstring tetromino[8];
 int nFieldWidth = 12;
 int nFieldHeight = 18;
+
 unsigned char* pField = nullptr; // 0 = empty space 1 
 
 int Rotate(int px, int py, int r)
