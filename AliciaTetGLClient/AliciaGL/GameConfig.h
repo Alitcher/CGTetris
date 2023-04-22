@@ -12,6 +12,7 @@ bool inputKey[4];
 const int BoardSize = 228;
 const int ROW_COUNT = 12;
 const int COL_COUNT = 18;
+const int TET_GRID_COUNT = 16;
 
 const int DOWN[2] = { 0, -1 };
 const int LEFT[2] = { -1, 0 };
