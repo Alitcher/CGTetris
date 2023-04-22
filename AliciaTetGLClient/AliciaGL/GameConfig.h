@@ -9,8 +9,13 @@ const float gap = 0.2f;
 const int shapesLength = 7;
 bool inputKey[4];
 
+const int BoardSize = 228;
+const int ROW_COUNT = 12;
+const int COL_COUNT = 18;
 
-
+const int DOWN[2] = { 0, -1 };
+const int LEFT[2] = { -1, 0 };
+const int RIGHT[2] = { 1, 0 };
 
 int RotateTet(int px, int py, int r)
 {
