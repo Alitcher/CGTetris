@@ -52,8 +52,11 @@ std::wstring board;
 int boardBit[BoardSize];
 int tetrominoBitGrid[TET_GRID_COUNT];
 int scoreCount = 20;
+int stepsCount;
 
 void printBoardGlobe() {
+	system("cls");
+
 	std::cout << "Score: " << scoreCount << std::endl;
 	for (int i = 0; i < BoardSize; i++) {
 		int row = i / ROW_COUNT; // calculate row

@@ -66,7 +66,7 @@ void drawBoard()
 		int row = i / ROW_COUNT; // calculate row
 		int col = i % ROW_COUNT; // calculate column
 		glm::vec2 squareTranslation(LeftPos + col * 0.10f, 0.9f - row * 0.10f); // set translation based on row and column
-		if (board.at(i) == L'X') {
+		if (board.at(i) == L'X' /*|| boardBit[row * ROW_COUNT + col] != 0*/ ) {
 
 			drawSquare(COLOR_NAVY, squareTranslation);
 			boardBit[i] = 1;
@@ -75,29 +75,6 @@ void drawBoard()
 	}
 }
 
-void generateRandomTetrimino(int randomIndex) {
-	wstring shape = shapes[randomIndex];
-	float offsetX = LeftPos + 0.4f;
-	//float offsetY = 1.2f;
-	for (int j = 0; j < TET_GRID_COUNT; j++) {
-		int row = j / 4; // calculate row
-		int col = j % 4; // calculate column
-
-
-		if (CurrentTetrominoTranslations.size() < TET_GRID_COUNT) {
-			// set translation based on row and column
-			glm::vec2 squareTranslation(offsetX + col * 0.10f, (TopPosY - row * 0.10f));
-			CurrentTetrominoTranslations.push_back(squareTranslation);
-		}
-
-		if (shape[j] == L'X') {
-			tetrominoBitGrid[j] = 1;
-			drawSquare(colors[randomIndex], CurrentTetrominoTranslations[j]);
-		}
-	}
-}
-
-int stepsCount;
 
 
 bool canMoveDown() {
@@ -105,7 +82,7 @@ bool canMoveDown() {
 		glm::vec2 blockPos = CurrentTetrominoTranslations[i];
 		int row = int(round((TopPosY - blockPos.y) / 0.1f));
 		int col = int(round((blockPos.x - LeftPos) / 0.1f));
-		cout << row << ", " << col << ", " << row * ROW_COUNT + col << endl;
+		//cout << row << ", " << col << ", " << row * ROW_COUNT + col << endl;
 		if (tetrominoBitGrid[i] == 1) {
 			// Check for static blocks only (value == 1)
 			if (boardBit[(row + 1) * ROW_COUNT + col] == 1) {
@@ -189,6 +166,8 @@ void moveTetromino(glm::vec2 direction) {
 }
 
 void moveTetDown() {
+	stepsCount++;
+
 	glm::vec2 direction(DOWN[0] * 0.1f, DOWN[1] * 0.1f);
 	moveTetromino(direction);
 }
@@ -224,7 +203,7 @@ void handleInput(GLFWwindow* window, glm::vec2& translation, bool& isDownKeyPres
 		if (canMoveDown())
 		{
 			moveTetDown();
-
+			printBoardGlobe();
 		}
 	}
 
@@ -232,6 +211,68 @@ void handleInput(GLFWwindow* window, glm::vec2& translation, bool& isDownKeyPres
 		&& glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE
 		&& glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE) {
 		isDownKeyPressed = false;
+	}
+}
+
+
+void generateRandomTetromino(int randomIndex) {
+	wstring shape = shapes[randomIndex];
+	float offsetX = LeftPos + 0.4f;
+	//float offsetY = 1.2f;
+	for (int j = 0; j < TET_GRID_COUNT; j++) {
+		int row = j / 4; // calculate row
+		int col = j % 4; // calculate column
+
+
+		if (CurrentTetrominoTranslations.size() < TET_GRID_COUNT) {
+			// set translation based on row and column
+			glm::vec2 squareTranslation(offsetX + col * 0.10f, (TopPosY - row * 0.10f));
+			CurrentTetrominoTranslations.push_back(squareTranslation);
+		}
+
+		if (shape[j] == L'X') {
+			tetrominoBitGrid[j] = 1;
+			drawSquare(colors[randomIndex], CurrentTetrominoTranslations[j]);
+		}
+	}
+}
+
+void spawnNewTetromino() {
+	randomTetromino = rand() % shapesLength;
+	currentTetRotation = 0;
+	float offsetX = LeftPos + 0.4f;
+	int index = 0;
+
+	for (int row = 0; row < 4; row++) {
+		for (int col = 0; col < 4; col++) {
+			if (shapes[randomTetromino][index] == L'X') {
+				glm::vec2 squareTranslation(offsetX + col * 0.10f, (TopPosY - row * 0.10f));
+				CurrentTetrominoTranslations[index] = squareTranslation;
+				tetrominoBitGrid[index] = 1;
+			}
+			else {
+				tetrominoBitGrid[index] = 0;
+			}
+			index++;
+		}
+	}
+}
+
+void clearPrevTet() 
+{
+	CurrentTetrominoTranslations.clear();
+}
+
+void printCurrentTetrominoBoardPositions() {
+	int i = 0;
+	for (const glm::vec2& blockPos : CurrentTetrominoTranslations) {
+		int row = int(round((TopPosY - blockPos.y) / 0.1f));
+		int col = int(round((blockPos.x - LeftPos) / 0.1f));
+
+		cout <<i<< "Block at (" << blockPos.x << ", " << blockPos.y
+			<< ") is in row " << row << " and column " << col
+			<< " on the board, with boardBit value: " << boardBit[row * ROW_COUNT + col] << endl;
+		i++;
 	}
 }
 
@@ -281,7 +322,7 @@ void CreateTetWindow4()
 		{
 			// RENDER
 			drawBoard();
-			generateRandomTetrimino(randomTetromino);
+			generateRandomTetromino(randomTetromino);
 
 		}
 
@@ -290,13 +331,21 @@ void CreateTetWindow4()
 		display.pollEvents();
 
 		// update the translation vector every interval seconds
-		if (Time.currentFrameTime >= Time.INTERVAL) {
-			system("cls");
-			printBoardGlobe();
-			printTetrominoBit();
+		if (Time.currentFrameTime >= Time.INTERVAL && !isGameover) {
+			//printTetrominoBit();
 			if (canMoveDown()) {
 				moveTetDown();
-				stepsCount++;
+				printBoardGlobe();
+
+				printCurrentTetrominoBoardPositions();
+
+			}
+			else if(!canMoveDown() && stepsCount > 1)
+			{
+				clearPrevTet();
+				stepsCount = 0;
+				randomTetromino = rand() % shapesLength;
+				generateRandomTetromino(randomTetromino);
 			}
 			glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
 			Time.INTERVAL += 1.0f;
