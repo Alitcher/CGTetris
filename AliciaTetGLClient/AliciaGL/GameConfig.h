@@ -46,4 +46,100 @@ int RotateTet(int px, int py, int r)
 	return pi;
 }
 
+std::wstring shapes[shapesLength];
+std::wstring board;
+
+int boardBit[BoardSize];
+int tetrominoBitGrid[TET_GRID_COUNT];
+int scoreCount = 20;
+
+void printBoardGlobe() {
+	std::cout << "Score: " << scoreCount << std::endl;
+	for (int i = 0; i < BoardSize; i++) {
+		int row = i / ROW_COUNT; // calculate row
+		int col = i % ROW_COUNT; // calculate column
+		std::cout << boardBit[i];
+		if (col == ROW_COUNT - 1) {
+			std::cout << std::endl;
+		}
+	}
+}
+
+void printTetrominoBit()
+{
+	std::cout << std::endl;
+	std::cout << "Current tetromino: " << std::endl;
+	for (int i = 0; i < TET_GRID_COUNT; i++)
+	{
+		int row = i / 4; // calculate row
+		int col = i % 4; // calculate column
+
+		std::cout << tetrominoBitGrid[i];
+		if (col == 4 - 1) {
+			std::cout << std::endl;
+		}
+	}
+}
+
+void setBoard()
+{
+
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"X..........X");
+	board.append(L"XXXXXXXXXXXX");
+}
+
+void setupTetrominos() {
+	shapes[0].append(L"..X.");
+	shapes[0].append(L"..X.");
+	shapes[0].append(L"..X.");
+	shapes[0].append(L"..X.");
+
+	shapes[1].append(L"..X.");
+	shapes[1].append(L".XX.");
+	shapes[1].append(L"..X.");
+	shapes[1].append(L"....");
+
+	shapes[2].append(L"....");
+	shapes[2].append(L".XX.");
+	shapes[2].append(L".XX.");
+	shapes[2].append(L"....");
+
+	shapes[3].append(L"..X.");
+	shapes[3].append(L".XX.");
+	shapes[3].append(L".X..");
+	shapes[3].append(L"....");
+
+	shapes[4].append(L".X..");
+	shapes[4].append(L".XX.");
+	shapes[4].append(L"..X.");
+	shapes[4].append(L"....");
+
+	shapes[5].append(L".X..");
+	shapes[5].append(L".X..");
+	shapes[5].append(L".XX.");
+	shapes[5].append(L"....");
+
+	shapes[6].append(L"..X.");
+	shapes[6].append(L"..X.");
+	shapes[6].append(L".XX.");
+	shapes[6].append(L"....");
+
+}
 #endif 

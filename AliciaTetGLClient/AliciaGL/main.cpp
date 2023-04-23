@@ -13,12 +13,8 @@
 
 using namespace std;
 
-int boardGlobe[BoardSize];
-wstring shapes[shapesLength];
-wstring board;
-
-void setupTetrominos();
-void setBoard();
+int randomTetromino;
+int currentTetRotation = 0;
 
 void deleteBuffers(GLuint& vao, GLuint& vbo);
 void drawSquare(glm::vec4 color, glm::vec2 squareTranslation);
@@ -33,81 +29,70 @@ GLint translationLocation;
 GLint colorLocation;
 GLint projectionLocation;
 
-vector<glm::vec2> CurrentTetriminoTranslations;
+vector<glm::vec2> CurrentTetrominoTranslations;
 
 /*VAO is an object that represents the vertex fetch stage of the
 OpenGL pipeline and is used to supply input to the vertex shader.*/
 
-bool drew = false;
+void rotateTetromino(int rotation) {
+	vector<glm::vec2> rotatedTetromino;
+
+	for (int i = 0; i < TET_GRID_COUNT; i++) {
+		//if (tetrominoBitGrid[i] == 1) {
+		int px = i % 4;
+		int py = i / 4;
+		int newPosIndex = RotateTet(px, py, rotation);
+		int newRow = newPosIndex / 4;
+		int newCol = newPosIndex % 4;
+
+		// Calculate the rotated position
+		glm::vec2 rotatedPosition = CurrentTetrominoTranslations[0] +
+			glm::vec2(newCol * 0.1f, -newRow * 0.1f);
+
+		rotatedTetromino.push_back(rotatedPosition);
+		//}
+	}
+
+	// Check if the rotated tetromino can fit
+	//if (canFit(rotatedTetromino)) {
+		// Update the current tetromino with the new positions
+	CurrentTetrominoTranslations = rotatedTetromino;
+	//}
+}
 
 void drawBoard()
 {
-	for (int i = 0; i < board.size(); ++i) {
+	for (int i = 0; i < BoardSize; ++i) {
 		int row = i / ROW_COUNT; // calculate row
 		int col = i % ROW_COUNT; // calculate column
 		glm::vec2 squareTranslation(LeftPos + col * 0.10f, 0.9f - row * 0.10f); // set translation based on row and column
 		if (board.at(i) == L'X') {
 
 			drawSquare(COLOR_NAVY, squareTranslation);
-			boardGlobe[i] = 1;
+			boardBit[i] = 1;
 		}
-		else {
-			//drawSquare(COLOR_BLUE, squareTranslation); // set the cell color to white if it contains a "."
-			boardGlobe[i] = 0;
-		}
-
-		if (!drew)
-		{
-			std::cout << std::fixed << std::setprecision(2) << "(" << squareTranslation.x << ", " << squareTranslation.y << ")";
-			//std::cout << boardGlobe[i] ;
-			if (col == ROW_COUNT - 1) {
-				std::cout << std::endl;
-			}
-		}
-
 
 	}
-	drew = true;
 }
-//
-//void move(glm::vec2 direction) {
-//	for (int i = 0; i < CurrentTetriminoTranslations.size(); i++) {
-//		//std::cout << std::fixed << std::setprecision(2) << i << ": (" << CurrentTetriminoTranslations[i].x << ", " << CurrentTetriminoTranslations[i].y << ")" << std::endl;
-//		CurrentTetriminoTranslations[i] += direction;
-//		glUniform2fv(translationLocation, 1, glm::value_ptr(CurrentTetriminoTranslations[i]));
-//	}
-//}
-//
-//void moveTetDown() {
-//	move(glm::vec2(0.0f, -0.1f));
-//}
-//
-//void moveTetLeft() {
-//	move(glm::vec2(-0.1f, 0.0f));
-//}
-//
-//void moveTetRight() {
-//	move(glm::vec2(0.1f, 0.0f));
-//}
-
 
 void generateRandomTetrimino(int randomIndex) {
 	wstring shape = shapes[randomIndex];
 	float offsetX = LeftPos + 0.4f;
 	//float offsetY = 1.2f;
-	for (int j = 0; j < 16; j++) {
+	for (int j = 0; j < TET_GRID_COUNT; j++) {
 		int row = j / 4; // calculate row
 		int col = j % 4; // calculate column
 
 
-		if (CurrentTetriminoTranslations.size() < 16) {
+		if (CurrentTetrominoTranslations.size() < TET_GRID_COUNT) {
 			// set translation based on row and column
 			glm::vec2 squareTranslation(offsetX + col * 0.10f, (TopPosY - row * 0.10f));
-			CurrentTetriminoTranslations.push_back(squareTranslation);
+			CurrentTetrominoTranslations.push_back(squareTranslation);
 		}
 
 		if (shape[j] == L'X') {
-			drawSquare(colors[randomIndex], CurrentTetriminoTranslations[j]);
+			tetrominoBitGrid[j] = 1;
+			drawSquare(colors[randomIndex], CurrentTetrominoTranslations[j]);
 		}
 	}
 }
@@ -116,37 +101,91 @@ int stepsCount;
 
 
 bool canMoveDown() {
-	for (int i = CurrentTetriminoTranslations.size() - 1; i > 0; i--) {
-		glm::vec2 blockPos = CurrentTetriminoTranslations[i];
+	for (int i = TET_GRID_COUNT - 1; i >= 0; i--) {
+		glm::vec2 blockPos = CurrentTetrominoTranslations[i];
 		int row = int(round((TopPosY - blockPos.y) / 0.1f));
 		int col = int(round((blockPos.x - LeftPos) / 0.1f));
-		if (boardGlobe[row * ROW_COUNT + col] == 1) {
-			return false;
+		cout << row << ", " << col << ", " << row * ROW_COUNT + col << endl;
+		if (tetrominoBitGrid[i] == 1) {
+			// Check for static blocks only (value == 1)
+			if (boardBit[(row + 1) * ROW_COUNT + col] == 1) {
+				return false;
+			}
 		}
 
 	}
 	return true;
 }
 
-bool canMove(glm::vec2 direction) {
-	for (int i = 0; i < CurrentTetriminoTranslations.size(); i++) {
-		glm::vec2 blockPos = CurrentTetriminoTranslations[i] + direction;
+bool canMoveLeft() {
+	for (int i = 0; i < CurrentTetrominoTranslations.size(); i++) {
+		glm::vec2 blockPos = CurrentTetrominoTranslations[i];
 		int row = int(round((TopPosY - blockPos.y) / 0.1f));
 		int col = int(round((blockPos.x - LeftPos) / 0.1f));
-		if (row < 0 || col < 0 || col >= COL_COUNT || boardGlobe[row * ROW_COUNT + col] == 1) {
-			return false;
+
+		if (tetrominoBitGrid[i] == 1) {
+			if (col == 0 || boardBit[row * ROW_COUNT + (col - 1)] == 1) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+bool canMoveRight() {
+	for (int i = 0; i < CurrentTetrominoTranslations.size(); i++) {
+		glm::vec2 blockPos = CurrentTetrominoTranslations[i];
+		int row = int(round((TopPosY - blockPos.y) / 0.1f));
+		int col = int(round((blockPos.x - LeftPos) / 0.1f));
+
+		if (tetrominoBitGrid[i] == 1) {
+			if (col == (ROW_COUNT - 1) || boardBit[row * ROW_COUNT + (col + 1)] == 1) {
+				return false;
+			}
 		}
 	}
 	return true;
 }
 
 void moveTetromino(glm::vec2 direction) {
-	if (canMove(direction)) {
-		for (int i = 0; i < CurrentTetriminoTranslations.size(); i++) {
-			CurrentTetriminoTranslations[i] += direction;
-			glUniform2fv(translationLocation, 1, glm::value_ptr(CurrentTetriminoTranslations[i]));
+
+
+	std::vector<glm::vec2> newPositions(TET_GRID_COUNT);
+
+	// Calculate new positions without updating CurrentTetrominoTranslations yet
+	for (int i = 0; i < TET_GRID_COUNT; i++) {
+		newPositions[i] = CurrentTetrominoTranslations[i] + direction;
+	}
+
+	// Clear the previous position of the tetromino in the boardBit array
+	for (int i = 0; i < TET_GRID_COUNT; i++) {
+		if (tetrominoBitGrid[i] == 1) {
+			int row = int(round((TopPosY - CurrentTetrominoTranslations[i].y) / 0.1f));
+			int col = int(round((CurrentTetrominoTranslations[i].x - LeftPos) / 0.1f));
+			boardBit[row * ROW_COUNT + col] = 0;
 		}
 	}
+
+	// Update the new positions in CurrentTetrominoTranslations and boardBit array
+	for (int i = 0; i < TET_GRID_COUNT; i++) {
+		glm::vec2 blockPos = newPositions[i];
+		int row = int(round((TopPosY - blockPos.y) / 0.1f));
+		int col = int(round((blockPos.x - LeftPos) / 0.1f));
+		if (tetrominoBitGrid[i] == 1) {
+
+			boardBit[row * ROW_COUNT + col] = randomTetromino + 1;
+		}
+		if (tetrominoBitGrid[i] == 1 || CurrentTetrominoTranslations[i] != newPositions[i]) {
+			CurrentTetrominoTranslations[i] = newPositions[i]; // Update the actual position
+			glUniform2fv(translationLocation, 1, glm::value_ptr(CurrentTetrominoTranslations[i]));
+		}
+	}
+
+	// Render the new positions
+	for (int i = 0; i < TET_GRID_COUNT; i++) {
+		glUniform2fv(translationLocation, 1, glm::value_ptr(CurrentTetrominoTranslations[i]));
+	}
+
 }
 
 void moveTetDown() {
@@ -166,24 +205,23 @@ void moveTetRight() {
 
 void handleInput(GLFWwindow* window, glm::vec2& translation, bool& isDownKeyPressed) {
 	if (!isDownKeyPressed) {
-		if (glfwGetKey(window, GLFW_KEY_RIGHT) || glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && translation.x < 0.1f) {
-			//if(canMoveRight() )
-			
+		if (glfwGetKey(window, GLFW_KEY_RIGHT) || glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS &&canMoveRight()) {
 			moveTetRight();
 			isDownKeyPressed = true;
 		}
-		else if (glfwGetKey(window, GLFW_KEY_LEFT) || glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && translation.x > -0.8f) {
-			//if( canMoveLeft() )
+		else if (glfwGetKey(window, GLFW_KEY_LEFT) || glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && canMoveLeft()) {
 			moveTetLeft();
 			isDownKeyPressed = true;
 		}
 		else if (glfwGetKey(window, GLFW_KEY_UP) || glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			//if( canRotate() )
 			isDownKeyPressed = true;
+			currentTetRotation++;
+			rotateTetromino(currentTetRotation);
 		}
 	}
 	if (glfwGetKey(window, GLFW_KEY_DOWN) || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && translation.y > -0.8f) {
-		if (canMoveDown()) 
+		if (canMoveDown())
 		{
 			moveTetDown();
 
@@ -221,10 +259,8 @@ void CreateTetWindow4()
 
 	glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
 
-	//translation.y = 1.0f;
-	//translation.x = LeftPos + 0.1f;
 	bool isGameover = false;
-	int randomIndex = rand() % shapesLength;
+	randomTetromino = rand() % shapesLength;
 	bool isDownKeyPressed = false;
 
 	while (!display.shouldClose()) {
@@ -245,9 +281,8 @@ void CreateTetWindow4()
 		{
 			// RENDER
 			drawBoard();
-			generateRandomTetrimino(randomIndex);
+			generateRandomTetrimino(randomTetromino);
 
-			//drawSquare(COLOR_ORANGE, translation);
 		}
 
 
@@ -255,9 +290,14 @@ void CreateTetWindow4()
 		display.pollEvents();
 
 		// update the translation vector every interval seconds
-		if (Time.currentFrameTime >= Time.INTERVAL  && canMoveDown()) {
-			moveTetDown();
-			stepsCount++;
+		if (Time.currentFrameTime >= Time.INTERVAL) {
+			system("cls");
+			printBoardGlobe();
+			printTetrominoBit();
+			if (canMoveDown()) {
+				moveTetDown();
+				stepsCount++;
+			}
 			glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
 			Time.INTERVAL += 1.0f;
 		}
@@ -282,6 +322,8 @@ int main() {
 //////////////////////////////////////////////////////////////////////////////
 ///////////////////////RENDERING LOGICs BELOW/////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
+
+
 
 void createBuffers(GLuint& vao, GLuint& vbo, float* vertices, GLsizei verticesSize) {
 	glGenVertexArrays(1, &vao);
@@ -361,68 +403,7 @@ void drawSquare(glm::vec4 color, glm::vec2 squareTranslation) {
 	glBindVertexArray(0);
 }
 
-void setBoard()
-{
 
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"X..........X");
-	board.append(L"XXXXXXXXXXXX");
-	cout << board.size() << endl;
-}
-
-void setupTetrominos() {
-	shapes[0].append(L"..X.");
-	shapes[0].append(L"..X.");
-	shapes[0].append(L"..X.");
-	shapes[0].append(L"..X.");
-
-	shapes[1].append(L"..X.");
-	shapes[1].append(L".XX.");
-	shapes[1].append(L"..X.");
-	shapes[1].append(L"....");
-
-	shapes[2].append(L"....");
-	shapes[2].append(L".XX.");
-	shapes[2].append(L".XX.");
-	shapes[2].append(L"....");
-
-	shapes[3].append(L"..X.");
-	shapes[3].append(L".XX.");
-	shapes[3].append(L".X..");
-	shapes[3].append(L"....");
-
-	shapes[4].append(L".X..");
-	shapes[4].append(L".XX.");
-	shapes[4].append(L"..X.");
-	shapes[4].append(L"....");
-
-	shapes[5].append(L".X..");
-	shapes[5].append(L".X..");
-	shapes[5].append(L".XX.");
-	shapes[5].append(L"....");
-
-	shapes[6].append(L"..X.");
-	shapes[6].append(L"..X.");
-	shapes[6].append(L".XX.");
-	shapes[6].append(L"....");
-
-}
 
 
 void drawTriangle(glm::vec4 color, glm::vec2 triTranslation) {
@@ -439,21 +420,3 @@ void drawTriangle(glm::vec4 color, glm::vec2 triTranslation) {
 
 
 }
-
-//
-//void drawTetriminoSet() {
-//	float offsetX = -0.9f;
-//	float offsetY = 0.7f;
-//	float gap = 0.2f;
-//	for (int i = 0; i < 1; i++) {
-//		wstring shape = shapes[i];
-//		for (int j = 0; j < 16; j++) {
-//			if (shape[j] == L'X') {
-//				int row = j / 4; // calculate row
-//				int col = j % 4; // calculate column
-//				glm::vec2 squareTranslation(offsetX + col * 0.10f + i * gap, offsetY - row * 0.10f); // set translation based on row and column
-//				drawSquare(colors[i], squareTranslation);
-//			}
-//		}
-//	}
-//}
