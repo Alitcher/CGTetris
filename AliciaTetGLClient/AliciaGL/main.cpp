@@ -93,7 +93,7 @@ void drawBoard()
 
 void generateRandomTetrimino(int randomIndex) {
 	wstring shape = shapes[randomIndex];
-	float offsetX = LeftPos;
+	float offsetX = LeftPos + 0.4f;
 	//float offsetY = 1.2f;
 	for (int j = 0; j < 16; j++) {
 		int row = j / 4; // calculate row
@@ -102,7 +102,7 @@ void generateRandomTetrimino(int randomIndex) {
 
 		if (CurrentTetriminoTranslations.size() < 16) {
 			// set translation based on row and column
-			glm::vec2 squareTranslation(offsetX + col * 0.10f + randomIndex * gap, (TopPosY - row * 0.10f)); 
+			glm::vec2 squareTranslation(offsetX + col * 0.10f, (TopPosY - row * 0.10f));
 			CurrentTetriminoTranslations.push_back(squareTranslation);
 		}
 
