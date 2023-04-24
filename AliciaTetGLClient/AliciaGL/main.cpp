@@ -68,9 +68,7 @@ void drawBoard()
 		}
 		if (boardBit[i] != 0)
 		{
-			//board[i] = L'X';
 			drawSquare(COLOR_NAVY, squareTranslation);
-			//boardBit[i] = 1;
 		}
 
 	}
@@ -94,7 +92,6 @@ bool canMoveDown() {
 		glm::vec2 blockPos = CurrentTetrominoTranslations[i];
 		int row = int(round((TopPosY - blockPos.y) / 0.1f));
 		int col = int(round((blockPos.x - LeftPos) / 0.1f));
-		//cout << row << ", " << col << ", " << row * COL_COUNT + col << endl;
 		if (tetrominoBitGrid[i] == 1) {
 			// Check for static blocks only (value == 1)
 			if (boardBit[(row + 1) * COL_COUNT + col] > 0 ) { //&& tetrominoBitGrid[i] != boardBit[(row + 1) * COL_COUNT + col]
@@ -113,7 +110,7 @@ bool canMoveLeft() {
 		int col = int(round((blockPos.x - LeftPos) / 0.1f));
 
 		if (tetrominoBitGrid[i] == 1) {
-			if (col == 0 || boardBit[row * COL_COUNT + (col - 1)] == 1) {
+			if (col == 0 || boardBit[row * COL_COUNT + (col - 1)] > 0) {
 				return false;
 			}
 		}
@@ -128,7 +125,7 @@ bool canMoveRight() {
 		int col = int(round((blockPos.x - LeftPos) / 0.1f));
 
 		if (tetrominoBitGrid[i] == 1) {
-			if (col == (COL_COUNT - 1) || boardBit[row * COL_COUNT + (col + 1)] == 1) {
+			if (col == (COL_COUNT - 1) || boardBit[row * COL_COUNT + (col + 1)] > 0) {
 				return false;
 			}
 		}
