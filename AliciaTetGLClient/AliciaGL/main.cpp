@@ -81,7 +81,18 @@ void drawBoard()
 	}
 }
 
+void printCurrentTetrominoBoardPositions() {
+	int i = 0;
+	for (const glm::vec2& blockPos : CurrentTetrominoTranslations) {
+		int row = int(round((TopPosY - blockPos.y) / 0.1f));
+		int col = int(round((blockPos.x - LeftPos) / 0.1f));
 
+		cout << i << "Block at (" << blockPos.x << ", " << blockPos.y
+			<< ") is in row " << row << " and column " << col
+			<< " on the board, with boardBit value: " << boardBit[row * ROW_COUNT + col] << endl;
+		i++;
+	}
+}
 
 bool canMoveDown() {
 	for (int i = TET_GRID_COUNT - 1; i >= 0; i--) {
@@ -91,7 +102,7 @@ bool canMoveDown() {
 		//cout << row << ", " << col << ", " << row * ROW_COUNT + col << endl;
 		if (tetrominoBitGrid[i] == 1) {
 			// Check for static blocks only (value == 1)
-			if (boardBit[(row + 1) * ROW_COUNT + col] == 1) {
+			if (boardBit[(row + 1) * ROW_COUNT + col] == 1 ) { //&& tetrominoBitGrid[i] != boardBit[(row + 1) * ROW_COUNT + col]
 				return false;
 			}
 		}
@@ -265,18 +276,7 @@ void generateRandomTetromino(int randomIndex) {
 
 
 
-void printCurrentTetrominoBoardPositions() {
-	int i = 0;
-	for (const glm::vec2& blockPos : CurrentTetrominoTranslations) {
-		int row = int(round((TopPosY - blockPos.y) / 0.1f));
-		int col = int(round((blockPos.x - LeftPos) / 0.1f));
 
-		cout <<i<< "Block at (" << blockPos.x << ", " << blockPos.y
-			<< ") is in row " << row << " and column " << col
-			<< " on the board, with boardBit value: " << boardBit[row * ROW_COUNT + col] << endl;
-		i++;
-	}
-}
 
 
 void CreateTetWindow4()
