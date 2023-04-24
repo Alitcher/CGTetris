@@ -6,14 +6,14 @@ const float LeftPos = -0.5f;
 const float TopPosY = 0.9f;
 const float BotPosY = 0.4f;
 const float gap = 0.2f;
-const int shapesLength = 8;
+const int shapesLength = 7;
 bool inputKey[4];
 
 const int LowerBound = 1;
 
 const int BoardSize = 228;
-const int ROW_COUNT = 12;
-const int COL_COUNT = 18;
+const int ROW_COUNT = 18;
+const int COL_COUNT = 12;
 const int TET_GRID_COUNT = 16;
 
 const int DOWN[2] = { 0, -1 };
@@ -52,19 +52,22 @@ std::wstring shapes[shapesLength];
 std::wstring board;
 
 int boardBit[BoardSize];
+int boardBitTmp[BoardSize];
 int tetrominoBitGrid[TET_GRID_COUNT];
 int scoreCount = 20;
 int stepsCount;
-
+int randomTetromino;
+int currentTetRotation = 0;
+bool isGameover;
 void printBoardGlobe() {
 	system("cls");
 
 	std::cout << "Score: " << scoreCount << std::endl;
 	for (int i = 0; i < BoardSize; i++) {
-		int row = i / ROW_COUNT; // calculate row
-		int col = i % ROW_COUNT; // calculate column
-		std::cout << boardBit[i];
-		if (col == ROW_COUNT - 1) {
+		int row = i / COL_COUNT; // calculate row
+		int col = i % COL_COUNT; // calculate column
+		std::cout << boardBitTmp[i];
+		if (col == COL_COUNT - 1) {
 			std::cout << std::endl;
 		}
 	}
@@ -110,11 +113,27 @@ void setBoard()
 	board.append(L"XXXXXXXXXXXX");
 }
 
+void updateBitBoard()
+{
+	int row, col;
+	for (int i = 0; i < BoardSize; ++i)
+	{
+		row = i / COL_COUNT; // calculate row
+		col = i % COL_COUNT; // calculate column
+
+		if (board.at(i) == L'X') {
+
+			boardBit[i] = 1;
+			boardBitTmp[i] = 1;
+		}
+	}
+}
+
 void setupTetrominos() {
-	shapes[0].append(L"XXXX");
-	shapes[0].append(L"XXXX");
-	shapes[0].append(L"XXXX");
-	shapes[0].append(L"XXXX");
+	shapes[0].append(L"..X.");
+	shapes[0].append(L"..X.");
+	shapes[0].append(L"..X.");
+	shapes[0].append(L"..X.");
 
 	shapes[1].append(L"..X.");
 	shapes[1].append(L".XX.");
@@ -146,9 +165,6 @@ void setupTetrominos() {
 	shapes[6].append(L".XX.");
 	shapes[6].append(L"....");
 
-	shapes[7].append(L"..X.");
-	shapes[7].append(L"..X.");
-	shapes[7].append(L"..X.");
-	shapes[7].append(L"..X.");
+
 }
 #endif 
