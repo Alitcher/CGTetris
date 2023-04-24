@@ -71,10 +71,11 @@ void drawBoard()
 			drawSquare(COLOR_NAVY, squareTranslation);
 			boardBit[i] = 1;
 		}
-		if (boardBit[row * ROW_COUNT + col] != 0 && stepsCount == 0)
+		if (boardBit[i] != 0)
 		{
+			//board[i] = L'X';
 			drawSquare(COLOR_NAVY, squareTranslation);
-			boardBit[i] = 1;
+			//boardBit[i] = 1;
 		}
 
 	}
@@ -155,7 +156,16 @@ void moveTetromino(glm::vec2 direction) {
 		int col = int(round((blockPos.x - LeftPos) / 0.1f));
 		if (tetrominoBitGrid[i] == 1) {
 
-			boardBit[row * ROW_COUNT + col] = randomTetromino + 1;
+			if (randomTetromino == 0) 
+			{
+				boardBit[row * ROW_COUNT + col] = 7;
+
+			}
+			else 
+			{
+				boardBit[row * ROW_COUNT + col] = randomTetromino + 1;
+
+			}
 		}
 		if (tetrominoBitGrid[i] == 1 || CurrentTetrominoTranslations[i] != newPositions[i]) {
 			CurrentTetrominoTranslations[i] = newPositions[i]; // Update the actual position
@@ -187,6 +197,17 @@ void moveTetRight() {
 	moveTetromino(direction);
 }
 
+void clearPrevTet()
+{
+	for (int i = 0; i < TET_GRID_COUNT; i++)
+	{
+		tetrominoBitGrid[i] = 0;
+	}
+	CurrentTetrominoTranslations.clear();
+
+}
+
+
 void handleInput(GLFWwindow* window, glm::vec2& translation, bool& isDownKeyPressed) {
 	if (!isDownKeyPressed) {
 		if (glfwGetKey(window, GLFW_KEY_RIGHT) || glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS &&canMoveRight()) {
@@ -198,7 +219,7 @@ void handleInput(GLFWwindow* window, glm::vec2& translation, bool& isDownKeyPres
 			isDownKeyPressed = true;
 		}
 		else if (glfwGetKey(window, GLFW_KEY_UP) || glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			//if( canRotate() )
+			//clearPrevTet();
 			isDownKeyPressed = true;
 			currentTetRotation++;
 			rotateTetromino(currentTetRotation);
@@ -242,14 +263,7 @@ void generateRandomTetromino(int randomIndex) {
 	}
 }
 
-void clearPrevTet() 
-{
-	CurrentTetrominoTranslations.clear();
-	for (int i = 0; i < TET_GRID_COUNT; i++)
-	{
-		tetrominoBitGrid[i] = 0;
-	}
-}
+
 
 void printCurrentTetrominoBoardPositions() {
 	int i = 0;
@@ -289,7 +303,12 @@ void CreateTetWindow4()
 	glUniform2fv(translationLocation, 1, glm::value_ptr(translation));
 
 	bool isGameover = false;
-	randomTetromino = rand() % shapesLength;
+	randomTetromino = rand() % (shapesLength - LowerBound + 1) + LowerBound;
+	if (randomTetromino >= shapesLength) 
+	{
+		randomTetromino = shapesLength-1;
+	}
+	cout << randomTetromino<< endl;
 	bool isDownKeyPressed = false;
 
 	while (!display.shouldClose()) {
@@ -330,9 +349,15 @@ void CreateTetWindow4()
 			}
 			else if(!canMoveDown() && stepsCount > 1)
 			{
+				scoreCount += randomTetromino;
 				clearPrevTet();
 
-				randomTetromino = rand() % shapesLength;
+				randomTetromino = rand() % (shapesLength - LowerBound + 1) + LowerBound;
+				if (randomTetromino >= shapesLength)
+				{
+					randomTetromino = shapesLength - 1;
+				}
+				cout << randomTetromino << endl;
 				stepsCount = 0;
 
 				generateRandomTetromino(randomTetromino);

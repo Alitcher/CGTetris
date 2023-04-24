@@ -6,8 +6,10 @@ const float LeftPos = -0.5f;
 const float TopPosY = 0.9f;
 const float BotPosY = 0.4f;
 const float gap = 0.2f;
-const int shapesLength = 7;
+const int shapesLength = 8;
 bool inputKey[4];
+
+const int LowerBound = 1;
 
 const int BoardSize = 228;
 const int ROW_COUNT = 12;
@@ -109,10 +111,10 @@ void setBoard()
 }
 
 void setupTetrominos() {
-	shapes[0].append(L"..X.");
-	shapes[0].append(L"..X.");
-	shapes[0].append(L"..X.");
-	shapes[0].append(L"..X.");
+	shapes[0].append(L"XXXX");
+	shapes[0].append(L"XXXX");
+	shapes[0].append(L"XXXX");
+	shapes[0].append(L"XXXX");
 
 	shapes[1].append(L"..X.");
 	shapes[1].append(L".XX.");
@@ -144,5 +146,9 @@ void setupTetrominos() {
 	shapes[6].append(L".XX.");
 	shapes[6].append(L"....");
 
+	shapes[7].append(L"..X.");
+	shapes[7].append(L"..X.");
+	shapes[7].append(L"..X.");
+	shapes[7].append(L"..X.");
 }
 #endif 
