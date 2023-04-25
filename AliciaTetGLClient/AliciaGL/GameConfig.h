@@ -59,6 +59,46 @@ int stepsCount;
 int randomTetromino;
 int currentTetRotation = 0;
 bool isGameover;
+
+void updateBoardFromTemporary()
+{
+	for (int i = 0; i < BoardSize; ++i) {
+		boardBit[i] = boardBitTmp[i];
+	}
+}
+
+void checkAndClearRows()
+{
+	for (int row = 0; row < ROW_COUNT; row++)
+	{
+		bool rowFilled = true;
+
+		for (int col = 0; col < COL_COUNT; ++col) {
+			if (boardBitTmp[row * COL_COUNT + col] == 0) {
+				rowFilled = false;
+				break;
+			}
+		}
+
+		if (rowFilled)
+		{
+			for (int r = row; r > 0; --r) {
+				for (int c = 0; c < COL_COUNT; ++c) {
+					boardBitTmp[r * COL_COUNT + c] = boardBitTmp[(r - 1) * COL_COUNT + c];
+				}
+			}
+
+			// Clear the top row
+			for (int c = 0; c < COL_COUNT; ++c) {
+				boardBitTmp[c] = 0;
+			}
+
+			scoreCount += 100;
+		}
+	}
+
+}
+
 void printBoardGlobe() {
 	system("cls");
 

@@ -32,27 +32,64 @@ vector<glm::vec2> CurrentTetrominoTranslations;
 /*VAO is an object that represents the vertex fetch stage of the
 OpenGL pipeline and is used to supply input to the vertex shader.*/
 
-void rotateTetromino(int rotation) {
-	vector<glm::vec2> rotatedTetromino;
+//void rotateTetromino(int rotation) {
+//	int rotatedTetrominoGrid[TET_GRID_COUNT];
+//	bool validRotation = true;
+//
+//	for (int i = 0; i < TET_GRID_COUNT; i++) {
+//		int px = i % 4;
+//		int py = i / 4;
+//		int newPosIndex = RotateTet(px, py, rotation);
+//
+//		rotatedTetrominoGrid[newPosIndex] = tetrominoBitGrid[i];
+//	}
+//
+//	// Check for collisions with the temporary board
+//	for (int i = 0; i < TET_GRID_COUNT; i++) {
+//		if (rotatedTetrominoGrid[i] == 1) {
+//			int newRow = i / 4;
+//			int newCol = i % 4;
+//			glm::vec2 rotatedPosition = CurrentTetrominoTranslations[0] +
+//				glm::vec2(newCol * 0.1f, -newRow * 0.1f);
+//
+//			int row = int(round((TopPosY - rotatedPosition.y) / 0.1f));
+//			int col = int(round((rotatedPosition.x - LeftPos) / 0.1f));
+//
+//			if (row < 0 || row >= ROW_COUNT || col < 0 || col >= COL_COUNT || boardBitTmp[row * COL_COUNT + col] == 1) {
+//				validRotation = false;
+//				break;
+//			}
+//		}
+//	}
+//
+//	// Apply the rotation if it's valid
+//	if (validRotation) {
+//		vector<glm::vec2> newTetrominoTranslations;
+//		newTetrominoTranslations.push_back(CurrentTetrominoTranslations[0]);
+//
+//		for (int i = 0; i < TET_GRID_COUNT; i++) {
+//			tetrominoBitGrid[i] = rotatedTetrominoGrid[i];
+//
+//			if (tetrominoBitGrid[i] == 1) {
+//				int row = i / 4;
+//				int col = i % 4;
+//				glm::vec2 position = CurrentTetrominoTranslations[0] +
+//					glm::vec2(col * 0.1f, -row * 0.1f);
+//
+//				newTetrominoTranslations.push_back(position);
+//
+//				int boardRow = int(round((TopPosY - position.y) / 0.1f));
+//				int boardCol = int(round((position.x - LeftPos) / 0.1f));
+//				boardBitTmp[boardRow * COL_COUNT + boardCol] = 1;
+//			}
+//		}
+//
+//		CurrentTetrominoTranslations = newTetrominoTranslations;
+//	}
+//}
 
-	for (int i = 0; i < TET_GRID_COUNT; i++) {
-		//if (tetrominoBitGrid[i] == 1) {
-		int px = i % 4;
-		int py = i / 4;
-		int newPosIndex = RotateTet(px, py, rotation);
-		int newRow = newPosIndex / 4;
-		int newCol = newPosIndex % 4;
 
-		// Calculate the rotated position
-		glm::vec2 rotatedPosition = CurrentTetrominoTranslations[0] +
-			glm::vec2(newCol * 0.1f, -newRow * 0.1f);
 
-		rotatedTetromino.push_back(rotatedPosition);
-		//}
-	}
-
-	CurrentTetrominoTranslations = rotatedTetromino;
-}
 
 void drawBoard()
 {
@@ -86,6 +123,8 @@ void printCurrentTetrominoBoardPositions() {
 		i++;
 	}
 }
+
+
 
 bool canMoveDown() {
 	for (int i = TET_GRID_COUNT - 1; i >= 0; i--) {
@@ -207,6 +246,7 @@ void clearPrevTet()
 		tetrominoBitGrid[i] = 0;
 	}
 	CurrentTetrominoTranslations.clear();
+	currentTetRotation = 0;
 
 }
 
@@ -225,10 +265,10 @@ void handleInput(GLFWwindow* window, glm::vec2& translation, bool& isDownKeyPres
 			//clearPrevTet();
 			isDownKeyPressed = true;
 			currentTetRotation++;
-			rotateTetromino(currentTetRotation);
+			//rotateTetromino(currentTetRotation);
 		}
 	}
-	if (glfwGetKey(window, GLFW_KEY_DOWN) || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && translation.y > -0.8f) {
+	if (glfwGetKey(window, GLFW_KEY_DOWN) || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 		if (canMoveDown())
 		{
 			moveTetDown();
@@ -323,22 +363,19 @@ void CreateTetWindow4()
 
 		// update the translation vector every interval seconds
 		if (Time.currentFrameTime >= Time.INTERVAL && !isGameover) {
-			//printTetrominoBit();
 			if (canMoveDown()) {
 				moveTetDown();
 				printBoardGlobe();
 
-				printCurrentTetrominoBoardPositions();
 
 			}
 			else if(!canMoveDown() && stepsCount > 1)
 			{
-				for (int i = 0; i < BoardSize; ++i) {
-					boardBit[i] = boardBitTmp[i];
-				}
+				checkAndClearRows();
+				updateBoardFromTemporary();
+
 				scoreCount += randomTetromino;
 				clearPrevTet();
-
 				randomTetromino = rand() % shapesLength;
 
 				cout << randomTetromino << endl;
