@@ -18,6 +18,8 @@ void deleteBuffers(GLuint& vao, GLuint& vbo);
 void drawSquare(glm::vec4 color, glm::vec2 squareTranslation);
 void SetUpShader();
 
+bool canRotate();
+
 glm::mat4 projectionMatrix;
 GLuint createShaderProgram(const GLchar* vertexShaderSource, const GLchar* fragmentShaderSource);
 void createBuffers(GLuint& vao, GLuint& vbo, float* vertices, GLsizei verticesSize);
@@ -32,48 +34,7 @@ vector<glm::vec2> CurrentTetrominoTranslations;
 /*VAO is an object that represents the vertex fetch stage of the
 OpenGL pipeline and is used to supply input to the vertex shader.*/
 
-bool canRotate() {
-	// Clear the previous position of the tetromino in the boardBit array
-	for (int i = 0; i < TET_GRID_COUNT; i++) {
-		if (tetrominoBitGrid[i] == 1) {
-			int row = int(round((TopPosY - CurrentTetrominoTranslations[i].y) / 0.1f));
-			int col = int(round((CurrentTetrominoTranslations[i].x - LeftPos) / 0.1f));
-			boardBitTmp[row * COL_COUNT + col] = 0;
-		}
-	}
 
-	// Check if the tetromino can rotate
-	for (int i = 0; i < TET_GRID_COUNT; i++) {
-		glm::vec2 blockPos = CurrentTetrominoTranslations[i];
-		int row = int(round((TopPosY - blockPos.y) / 0.1f));
-		int col = int(round((blockPos.x - LeftPos) / 0.1f));
-		if (tetrominoBitGrid[i] == 1) {
-			int newRow = col;
-			int newCol = 3 - row;
-
-			if (newRow < 0 || newRow >= ROW_COUNT || newCol < 0 || newCol >= COL_COUNT || boardBit[newRow * COL_COUNT + newCol] > 0) {
-				return false;
-			}
-		}
-	}
-	return true;
-}
-
-void printTetrominoBitTmp(int* gridTmp)
-{
-	std::cout << std::endl;
-	std::cout << "Current tetromino: " << std::endl;
-	for (int i = 0; i < TET_GRID_COUNT; i++)
-	{
-		int row = i / 4; // calculate row
-		int col = i % 4; // calculate column
-
-		std::cout << gridTmp[i];
-		if (col == 4 - 1) {
-			std::cout << std::endl;
-		}
-	}
-}
 
 void rotateTetromino(int rotation) {
 	std::vector<glm::vec2> newRotations(TET_GRID_COUNT);
@@ -89,9 +50,9 @@ void rotateTetromino(int rotation) {
 
 	// Clear the previous position of the tetromino in the boardBit array
 	for (int i = 0; i < TET_GRID_COUNT; i++) {
-			int row = int(round((TopPosY - newRotations[i].y) / 0.1f));
-			int col = int(round((newRotations[i].x - LeftPos) / 0.1f));
-			boardBitTmp[row * COL_COUNT + col] = 0;
+		int row = int(round((TopPosY - newRotations[i].y) / 0.1f));
+		int col = int(round((newRotations[i].x - LeftPos) / 0.1f));
+		boardBitTmp[row * COL_COUNT + col] = 0;
 	}
 
 	// Update the new positions in CurrentTetrominoTranslations and render
@@ -100,7 +61,7 @@ void rotateTetromino(int rotation) {
 		int row = int(round((TopPosY - newRotations[i].y) / 0.1f));
 		int col = int(round((newRotations[i].x - LeftPos) / 0.1f));
 
-		if (gridTmp[i] > 0) 
+		if (gridTmp[i] > 0)
 		{
 			glUniform2fv(translationLocation, 1, glm::value_ptr(CurrentTetrominoTranslations[i]));
 		}
@@ -108,14 +69,13 @@ void rotateTetromino(int rotation) {
 
 }
 
-
 void drawBoard()
 {
 	for (int i = 0; i < BoardSize; ++i) {
 		int row = i / COL_COUNT; // calculate row
 		int col = i % COL_COUNT; // calculate column
 		glm::vec2 squareTranslation(LeftPos + col * 0.10f, 0.9f - row * 0.10f); // set translation based on row and column
-		if (board.at(i) == L'X' /*|| */) {
+		if (board.at(i) == L'X') {
 
 			drawSquare(COLOR_NAVY, squareTranslation);
 			boardBit[i] = 1;
@@ -135,21 +95,19 @@ void printCurrentTetrominoBoardPositions() {
 		int row = int(round((TopPosY - blockPos.y) / 0.1f));
 		int col = int(round((blockPos.x - LeftPos) / 0.1f));
 
-		cout << i << "Block at (" << blockPos.x << ", " << blockPos.y
+		std::cout << i << "Block at (" << blockPos.x << ", " << blockPos.y
 			<< ") is in row " << row << " and column " << col
 			<< " on the board, with boardBit value: " << boardBit[row * COL_COUNT + col] << endl;
 		i++;
 	}
 }
 
-
-
 bool canMoveDown() {
 	for (int i = TET_GRID_COUNT - 1; i >= 0; i--) {
 		glm::vec2 blockPos = CurrentTetrominoTranslations[i];
 		int row = int(round((TopPosY - blockPos.y) / 0.1f));
 		int col = int(round((blockPos.x - LeftPos) / 0.1f));
-		if (tetrominoBitGrid[i] == 1) {
+		if (tetrominoBitGrid[i] > 0) {
 			// Check for static blocks only (value == 1)
 			if (boardBit[(row + 1) * COL_COUNT + col] > 0) { //&& tetrominoBitGrid[i] != boardBit[(row + 1) * COL_COUNT + col]
 				return false;
@@ -166,7 +124,7 @@ bool canMoveLeft() {
 		int row = int(round((TopPosY - blockPos.y) / 0.1f));
 		int col = int(round((blockPos.x - LeftPos) / 0.1f));
 
-		if (tetrominoBitGrid[i] == 1) {
+		if (tetrominoBitGrid[i] > 0) {
 			if (col == 0 || boardBit[row * COL_COUNT + (col - 1)] > 0) {
 				return false;
 			}
@@ -182,7 +140,7 @@ bool canMoveRight() {
 		int col = int(round((blockPos.x - LeftPos) / 0.1f));
 
 
-		if (tetrominoBitGrid[i] == 1) {
+		if (tetrominoBitGrid[i] > 0) {
 			if (col == (COL_COUNT - 1) || boardBit[row * COL_COUNT + (col + 1)] > 0) {
 				return false;
 			}
@@ -191,6 +149,30 @@ bool canMoveRight() {
 	return true;
 }
 
+bool canRotate() {
+	std::vector<glm::vec2> newRotations(TET_GRID_COUNT);
+	int gridTmp[TET_GRID_COUNT];
+
+	// Calculate the rotated bit grid
+	for (int i = 0; i < TET_GRID_COUNT; i++) {
+		int pi = RotateTet(i % 4, i / 4, 1);
+		gridTmp[i] = tetrominoBitGrid[pi];
+		newRotations[i] = CurrentTetrominoTranslations[pi];
+	}
+
+	// Check if the tetromino can rotate
+	for (int i = 0; i < TET_GRID_COUNT; i++) {
+		if (gridTmp[i] > 0) {
+			int row = int(round((TopPosY - newRotations[i].y) / 0.1f));
+			int col = int(round((newRotations[i].x - LeftPos) / 0.1f));
+
+			if (col == 0 || boardBit[row * COL_COUNT + (col - 1)] > 0 || col == (COL_COUNT - 1) || boardBit[row * COL_COUNT + (col + 1)] > 0) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
 
 
 void generateRandomTetromino(int randomIndex) {
@@ -290,7 +272,7 @@ void handleInput(GLFWwindow* window, glm::vec2& translation, bool& isDownKeyPres
 			moveTetLeft();
 			isDownKeyPressed = true;
 		}
-		else if ((glfwGetKey(window, GLFW_KEY_UP) || glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)) {
+		else if ((glfwGetKey(window, GLFW_KEY_UP) || glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) && canRotate()) {
 			isDownKeyPressed = true;
 			currentTetRotation++;
 			rotateTetromino(currentTetRotation);
@@ -338,7 +320,7 @@ void CreateTetWindow4()
 	bool isGameover = false;
 	randomTetromino = rand() % shapesLength;
 
-	cout << randomTetromino << endl;
+	std::cout << randomTetromino << endl;
 	bool isDownKeyPressed = false;
 
 	while (!display.shouldClose()) {
@@ -384,7 +366,7 @@ void CreateTetWindow4()
 				clearPrevTet();
 				randomTetromino = rand() % shapesLength;
 
-				cout << randomTetromino << endl;
+				std::cout << randomTetromino << endl;
 				stepsCount = 0;
 				printBoardGlobe();
 				generateRandomTetromino(randomTetromino);
@@ -398,7 +380,7 @@ void CreateTetWindow4()
 		}
 
 	}
-	cout << stepsCount << " steps" << endl;
+	std::cout << stepsCount << " steps" << endl;
 	deleteBuffers(vao, vbo);
 	glDeleteProgram(shaderProgram);
 }
@@ -443,7 +425,7 @@ void SetUpShader()
 	projectionLocation = glGetUniformLocation(shaderProgram, "projectionMatrix");
 	// Check for errors in getting the uniform locations
 	if (colorLocation == -1 || translationLocation == -1 || projectionLocation == -1) {
-		cout << "Error: Failed to get uniform locations" << endl;
+		std::cout << "Error: Failed to get uniform locations" << endl;
 	}
 }
 

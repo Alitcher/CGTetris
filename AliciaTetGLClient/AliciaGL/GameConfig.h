@@ -129,6 +129,22 @@ void printTetrominoBit()
 	}
 }
 
+void printTetrominoGrids(int* gridTmp)
+{
+	std::cout << std::endl;
+	std::cout << "Current tetromino: " << std::endl;
+	for (int i = 0; i < TET_GRID_COUNT; i++)
+	{
+		int row = i / 4; // calculate row
+		int col = i % 4; // calculate column
+
+		std::cout << gridTmp[i];
+		if (col == 4 - 1) {
+			std::cout << std::endl;
+		}
+	}
+}
+
 void setBoard()
 {
 
