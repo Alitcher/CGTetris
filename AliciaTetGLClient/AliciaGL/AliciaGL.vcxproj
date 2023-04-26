@@ -150,7 +150,6 @@
     <ClCompile Include="playground.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="game_logic.cpp" />
-    <ClCompile Include="Shader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Clocks.h" />
@@ -158,7 +157,6 @@
     <ClInclude Include="RenderConfig.h" />
     <ClInclude Include="Display.h" />
     <ClInclude Include="GameConfig.h" />
-    <ClInclude Include="Shader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

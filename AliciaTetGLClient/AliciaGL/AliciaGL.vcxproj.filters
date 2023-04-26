@@ -21,27 +21,21 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="game_logic.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="playground.cpp">
       <Filter>Playground</Filter>
     </ClCompile>
     <ClCompile Include="Display.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Clocks.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="game_logic.cpp">
+      <Filter>Playground</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Display.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Colors.h">

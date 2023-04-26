@@ -1,4 +1,4 @@
-#include "display.h"
+#include "Display.h"
 #include <iostream>
 
 Display::Display(int width, int height, const std::string& title) {
