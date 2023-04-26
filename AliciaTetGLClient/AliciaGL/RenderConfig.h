@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef RENDERCONFIG_H
+#define RENDERCONFIG_H
 #include <string>
 #include <iostream>
 
@@ -23,10 +23,11 @@ const char* vertexShaderSource = R"glsl(
     #version 450 core
     layout (location = 0) in vec2 aPos;
     uniform vec2 uTranslation;
+	uniform mat4 projectionMatrix;
 
     void main() {
         vec2 translatedPos = aPos + uTranslation;
-        gl_Position = vec4(translatedPos, 0.0, 1.0);
+        gl_Position = projectionMatrix *vec4(translatedPos, 0.0, 1.0);
 }
 )glsl";
 
